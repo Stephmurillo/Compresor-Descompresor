@@ -1,0 +1,3 @@
+F:/documentos/Progra3/compresor2/cmake-build-debug/CMakeFiles/compresor2.dir
+F:/documentos/Progra3/compresor2/cmake-build-debug/CMakeFiles/edit_cache.dir
+F:/documentos/Progra3/compresor2/cmake-build-debug/CMakeFiles/rebuild_cache.dir

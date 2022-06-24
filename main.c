@@ -1,14 +1,10 @@
-/***************************************/
-/*     HUFFMAN ENCODING PROGRAM        */
-/* CREATED BY ADEESHA SAVINDA DE SILVA */
-/*           12 June 2016              */
-/*     adeesha.savinda@gmail.com       */
-/***************************************/
+
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 //structure used to define a node
 typedef struct node_t {
@@ -159,17 +155,107 @@ void print_code(unsigned int *freq){
 
 }
 
+//-------------------------------------------------------------------------------
+int splitFile(char *fileIn, size_t maxSize)
+{
+    int result = 0;
+    FILE *fIn;
+    FILE *fOut;
+    char buffer[1024 * 16];
+    size_t size;
+    size_t read;
+    size_t written;
+
+
+    if ((fileIn != NULL) && (maxSize > 0))
+    {
+        fIn = fopen(fileIn, "rb");
+        if (fIn != NULL)
+        {
+            fOut = NULL;
+            result = 1;   /* we have at least one part */
+
+            while (!feof(fIn))
+            {
+                /* initialize (next) output file if no output file opened */
+                if (fOut == NULL)
+                {
+                    sprintf(buffer, "%s.%03d", fileIn, result);
+                    fOut = fopen(buffer, "wb");
+                    if (fOut == NULL)
+                    {
+                        result *= -1;
+                        break;
+                    }
+
+                    size = 0;
+                }
+
+                /* calculate size of data to be read from input file in order to not exceed maxSize */
+                read = sizeof(buffer);
+                if ((size + read) > maxSize)
+                {
+                    read = maxSize - size;
+                }
+
+                /* read data from input file */
+                read = fread(buffer, 1, read, fIn);
+                if (read == 0)
+                {
+                    result *= -1;
+                    break;
+                }
+
+                /* write data to output file */
+                written = fwrite(buffer, 1, read, fOut);
+                if (written != read)
+                {
+                    result *= -1;
+                    break;
+                }
+
+                /* update size counter of current output file */
+                size += written;
+                if (size >= maxSize)   /* next split? */
+                {
+                    fclose(fOut);
+                    fOut = NULL;
+                    result++;
+                }
+            }
+
+            /* clean up */
+            if (fOut != NULL)
+            {
+                fclose(fOut);
+            }
+            fclose(fIn);
+        }
+    }
+
+    return (result);
+}
+//---------------------------------------------------------------------
+size_t divideTamanoTotalEn8(const char* filename)
+{
+    size_t size;
+    FILE *f;
+
+    f = fopen(filename, "rb");
+    if (f == NULL) return -1;
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    fclose(f);
+
+    return size/8;
+}
+//--------------------------------------------------------------------------
 int main(int argc, char* argv[]){
     FILE *fp_in, *fp_out;				//FIFO pointers
     char file_name[50]={0};				//file name
-    unsigned int freq[128] = {0},i;			//frequency of the letters
+    unsigned int freq[128] = {0},i;			//frequency of the letters -------> Hay que bloquear con semaforo
 
-    system("clear");
-    printf("**********************************************************************\n");
-    printf("                      COMMUNICATION  ENGINEERING\n");
-    printf("                                 SHU M.Eng\n");
-    printf("                             -HUFFMAN ENCODER-\n");
-    printf("**********************************************************************\n\n");
+
 
 
     if( argc == 2 ) {
@@ -189,11 +275,53 @@ int main(int argc, char* argv[]){
     }
 
     //import the file into the program and update the huffman tree
-    if((fp_in = fopen(file_name,"r"))==NULL){	//open the file stream
+    if((fp_in = fopen(file_name,"rb"))==NULL){	//open the file stream
         printf("\nERROR: No such file\n");
         return 0;
     }
-    import_file(fp_in,freq);			//import the file and fills frequency array
+    size_t tamano = divideTamanoTotalEn8("prueba.txt");
+  //  printf("You entered: %d",tamano );
+    splitFile("prueba.txt",tamano);
+
+
+
+   /* struct stat sb;
+    if (stat(file_name, &sb) == -1)
+    {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+    */
+   /* char *file_contents1 = malloc(sb.st_size/8);  // campo en memoria
+    char *file_contents2 = malloc(sb.st_size/8);
+    char *file_contents3 = malloc(sb.st_size/8);
+    char *file_contents4 = malloc(sb.st_size/8);
+    char *file_contents5 = malloc(sb.st_size/8);
+    char *file_contents6 = malloc(sb.st_size/8);
+    char *file_contents7 = malloc(sb.st_size/8);
+    char *file_contents8 = malloc(sb.st_size/8);
+    int part1 =  sb.st_size / 8; //divide el tamaño del documento en 8 partes (para 8 hilos)
+    int part2 =  (sb.st_size / 8)+1;
+    int part3 =  (sb.st_size / 8)+1;
+    int part4 =  (sb.st_size / 8)+1;
+    int part5 =  (sb.st_size / 8)+1;
+    int part6 =  (sb.st_size / 8)+1;
+    int part7 =  (sb.st_size / 8)+1;
+    int part8 =  (sb.st_size / 8)+1;
+
+
+    fread(file_contents1, part1, 1, fp_in);
+    fread(file_contents2, part2, 1, fp_in);
+    fread(file_contents3, part3, 1, fp_in);
+    fread(file_contents4, part4, 1, fp_in);
+    fread(file_contents5, part5, 1, fp_in);
+    fread(file_contents6, part6, 1, fp_in);
+    fread(file_contents7, part7, 1, fp_in);
+    fread(file_contents8, part8, 1, fp_in);
+
+*/
+
+   /* import_file(fp_in,freq);			//import the file and fills frequency array
 
 
     print_code(freq);				//print the code table
@@ -220,5 +348,6 @@ int main(int argc, char* argv[]){
     printf("Output bytes:\t\t%d\n",output_data);
 
     printf("\nCompression ratio:\t%.2f%%\n\n\n",((double)(input_data-output_data)/input_data)*100);
+    */
     return 0;
 }

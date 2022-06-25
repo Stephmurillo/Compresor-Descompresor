@@ -257,7 +257,7 @@ int main(int argc, char* argv[]){
 
 
 
-
+/*
     if( argc == 2 ) {
         strcpy(file_name,argv[1]);		//commandline argument directly allows to compress the file
     }
@@ -279,8 +279,11 @@ int main(int argc, char* argv[]){
         printf("\nERROR: No such file\n");
         return 0;
     }
+    */
+    //--------------------------------------------------------------------
+
     size_t tamano = divideTamanoTotalEn8("prueba.txt");
-  //  printf("You entered: %d",tamano );
+   // printf("Tamano: %d",tamano );
     splitFile("prueba.txt",tamano);
 
 
